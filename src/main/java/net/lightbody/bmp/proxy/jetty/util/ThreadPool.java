@@ -527,13 +527,19 @@ public class ThreadPool implements LifeCycle,Serializable
                             runPool=_runPool=_jobPool;
                             _jobPool=null;
                         }
+                        
+                        
+                        //need to handle in sync b/c if shrink is already running and tries to evict this thread
+                        //after the null checks it will result in npe
+                        if(run!=null && runPool!=null) {
+                           runPool.handle(run);
+                        }
+                        else if (run==null && _pool!=null){
+                            _pool.shrink();
+                        }
                     }
                     
-                    // handle outside of sync
-                    if(run!=null && runPool!=null)
-                        runPool.handle(run);
-                    else if (run==null && _pool!=null)
-                        _pool.shrink();
+                   
                 }
                 catch(InterruptedException e)
                 {
